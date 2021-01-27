@@ -49,6 +49,16 @@ hmomza <- censoagebsonora %>%
   unite(CVEGEO,c(ENTIDAD,MUN,LOC,AGEB,MZA),  sep = "", remove = TRUE) %>% 
   filter (NOM_LOC=="Hermosillo")
 hmomza [is.na(hmomza )] <- 0 
+
+hmotot <- hmomza %>% 
+  group_by(NOM_LOC) %>% 
+  summarise(HPOBTOT=sum(POBTOT), 
+            HPOBFEM=sum(POBFEM), 
+            HPOBMAS=sum(POBMAS), 
+            HP_18YMAS=sum(P_18YMAS), 
+            HP_60YMAS=sum(P_60YMAS), HVIVPAR_HAB=sum(VIVPAR_HAB), HINTER=sum(VPH_INTER))
+
+
 hmomza <- hmomza %>% filter(POBTOT!=0)
 hmomza <- hmomza %>% mutate(mujeres=round(POBFEM*100/POBTOT,1), hombres=round(POBMAS*100/POBTOT,1), 
                             P60=round(P_60YMAS*100/POBTOT,1), P18=round(P_18YMAS*100/POBTOT,1), lyr=round(P15YM_AN*100/P_15YMAS,1), pea=round(PEA*100/P_12YMAS,1), salud=round(PDER_SS*100/POBTOT,1),
@@ -114,6 +124,8 @@ hmomza <- hmomza %>% mutate(rec=if_else(v2rec>90,5,
 
 capa_mza<- readOGR("Shapes", layer="HMOMZA",  encoding = "UTF-8", use_iconv=TRUE)
 
+hmomza <- hmomza %>% select(CVEGEO,POBTOT, POBFEM, POBMAS, P_60YMAS, PROM_OCUP, inter, saludp)
+
 capa_mza <- capa_mza %>%  merge(hmomza)
 
 incipal <-  colorFactor(c("#58BCBC", "#01A2AC", "#01787E", "#005155", "black"), levels= c("1","2","3","4","5"), na.color ="#e8e6e6")
@@ -135,13 +147,8 @@ popup <- paste0(
 mapahmo <- leaflet(capa_mza) %>% 
   addProviderTiles(providers$CartoDB.Voyager) %>%
   addLayersControl( 
-    baseGroups = c("% POBLACIÓN FEMENINA","% POBLACIÓN MASCULINA", "% POBLACIÓN MAYOR DE 60 AÑOS", "% POBLACIÓN MAYOR DE 18 AÑOS",
-                   "% POBLACIÓN MAYOR DE 15 AÑOS ANALFABETA", "% POBLACIÓN ECONÓMICAMENTE ACTIVA", "% POBLACIÓN AFILIADA A SERVICIOS DE SALUD", 
-                   "% POBLACIÓN RELIGIÓN CATÓLICA", "% POBLACIÓN MAYOR DE 12 AÑOS SOLTERA",
-                   "% VIVIENDAS PARTICULARES HABITADAS QUE DISPONEN DE AUTO O CAMIONETA", "% VIVIENDAS PARTICULARES HABITADAS CON BICICLETA COMO MEDIO DE TRANSPORTE", 
-                   "% VIVIENDAS PARTICULARES HABITADAS CON INTERNET", "% VIVIENDAS PARTICULARES HABITADAS SIN TIC's", 
-                   "% VIVIENDAS PARTICULARES HABITADAS CON 2 DORMITORIOS O MÁS"), 
-    options = layersControlOptions(collapsed = TRUE, position = "topleft")) %>% 
+    baseGroups = c("% VIVIENDAS PARTICULARES HABITADAS CON INTERNET"), 
+    options = layersControlOptions(collapsed = FALSE, position = "topleft")) %>% 
   addPolygons(data= capa_mza,
               stroke= TRUE,
               weight=0.2,                   
@@ -164,297 +171,10 @@ mapahmo <- leaflet(capa_mza) %>%
                                             "border-color" = "rgba(0,0,0,0.5)"
                                           )),
               group= "% VIVIENDAS PARTICULARES HABITADAS CON INTERNET") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$rec),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% VIVIENDAS HABITADAS CON 2 DORMITORIOS O MÁS") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$mujerp),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN FEMENINA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$hombrep),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN MASCULINA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$P60p),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN MAYOR DE 60 AÑOS") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$P18p),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN MAYOR DE 18 AÑOS") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$lyrp),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN MAYOR DE 15 AÑOS ANALFABETA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$peap),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN ECONÓMICAMENTE ACTIVA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$saludp),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN AFILIADA A SERVICIOS DE SALUD") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$catop),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN RELIGIÓN CATÓLICA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$soltp),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% POBLACIÓN MAYOR DE 12 AÑOS SOLTERA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$autop),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group="% VIVIENDAS PARTICULARES HABITADAS QUE DISPONEN DE AUTO O CAMIONETA") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$bicip),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% VIVIENDAS PARTICULARES HABITADAS CON BICICLETA COMO MEDIO DE TRANSPORTE") %>%
-  addPolygons(data= capa_mza,
-              stroke= TRUE,
-              weight=0.2,                   
-              opacity=1,
-              fillColor = ~incipal(capa_mza$TICp),
-              color= "white",
-              fillOpacity = 1,
-              smoothFactor = 0.5,
-              highlightOptions = highlightOptions(color = "black", 
-                                                  weight = 1.2,
-                                                  bringToFront = TRUE),
-              label=popup, 
-              labelOptions = labelOptions(noHide = F, direction = "top",
-                                          style = list(
-                                            "color" = "black",
-                                            "font-family" = "Lato",
-                                            "font-style" = "regular",
-                                            "box-shadow" = "2px 2px rgba(0,0,0,0.25)",
-                                            "font-size" = "11px",
-                                            "border-color" = "rgba(0,0,0,0.5)"
-                                          )),
-              group= "% VIVIENDAS PARTICULARES HABITADAS SIN TIC's") %>%
-  addLegend(position = "topright", pal = incipal, values = ~capa_mza$inter, opacity=1, group= "% VIVIENDAS PARTICULARES HABITADAS CON INTERNET", 
+  addLegend(position = "topleft", pal = incipal, values = ~capa_mza$inter, opacity=1, group= "% VIVIENDAS PARTICULARES HABITADAS CON INTERNET", 
             labFormat = function(type, cuts, p) {  
               paste0(labs)} ,
             title = "Respecto al total de la manzana", na.label = "N/A") 
 
-save_html(mapahmo,"index.html", background = "white", libdir = "lib", lang = "en")
 saveWidget(mapahmo,"index.html", selfcontained = F, libdir = "lib")
 

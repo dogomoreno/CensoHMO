@@ -3,9 +3,9 @@
     "path": "C:/Users/luism/OneDrive/R/CensoHMO/HMOMZAReducido.R",
     "project_path": "HMOMZAReducido.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "2382260519",
     "contents": "",
-    "dirty": true,
+    "dirty": false,
     "created": 1611689705474.0,
     "source_on_save": false,
     "relative_order": 10,
@@ -17,11 +17,11 @@
         "scrollLine": "150"
     },
     "folds": "",
-    "lastKnownWriteTime": 1611727216,
+    "lastKnownWriteTime": 1611731738,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1611730607476,
+    "last_content_update": 1611731739142,
     "read_only": false,
     "read_only_alternatives": []
 }
