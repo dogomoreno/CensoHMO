@@ -124,7 +124,7 @@ hmomza <- hmomza %>% mutate(rec=if_else(v2rec>90,5,
 
 capa_mza<- readOGR("Shapes", layer="HMOMZA",  encoding = "UTF-8", use_iconv=TRUE)
 
-hmomza <- hmomza %>% select(CVEGEO,POBTOT, POBFEM, POBMAS, P_60YMAS, PROM_OCUP, inter, saludp)
+hmomza <- hmomza %>% select(CVEGEO,POBTOT, POBFEM, POBMAS, P_18YMAS, P_60YMAS, PROM_OCUP, inter, saludp)
 
 capa_mza <- capa_mza %>%  merge(hmomza)
 
